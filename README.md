@@ -13,10 +13,10 @@
 | 🖥️ Execute CMD/PS Commands | ✅ Completed    | Run terminal/shell commands remotely via Telegram |
 | 💬 Message Box        | 🔄 In Progress | Display a custom pop-up message on the screen     |
 | 🖼️ Screenshot        | 🔄 In Progress | Capture a screenshot of the target device         |
-| 📷 Webshot            | 🔄 In Progress | Take a snapshot of the current browser window     |
+| 📷 Webshot            | 🔄 In Progress | Take a pic of the Front camera     |
 | 📥 Download Files     | 🔄 In Progress | Remotely download files from the victim's system  |
 | 📤 Upload Files       | 🔄 In Progress | Upload files to the victim's system               |
-| 🖼️ Change Wallpaper  | 🔄 In Progress | Set a custom desktop wallpaper                    |
+| 🖼️ Change Wallpaper  | 🔄 In Progress | Change desktop wallpaper in victim's system                   |
 | 🌐 Browser History    | 🔄 In Progress | Retrieve browser history from supported browsers  |
 | 🔁 Autostart          | 🔄 In Progress | Enable auto-run on system boot for persistence    |
 
