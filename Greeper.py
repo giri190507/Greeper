@@ -2,6 +2,7 @@
 
 import os
 import subprocess as sp
+from sys import exit
 try:import telebot
 except:os.system("pip install telebot")
 
