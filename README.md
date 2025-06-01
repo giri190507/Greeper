@@ -13,13 +13,13 @@
 | 🖥️ Execute CMD/PS Commands | ✅ Completed    | Run terminal/shell commands remotely via Telegram |
 | 💬 Message Box        | ✅ Completed | Display a custom pop-up message on the screen     |
 | 🔁 Autostart          | ✅ Completed | Enable auto-run on system boot for persistence    |
+| 📤 Upload Files       | ✅ Completed | Upload files to the victim's system               |
+| 📥 Download Files     | ✅ Completed | Remotely download files from the victim's system  |
 | 🖼️ Screenshot        | 🔄 In Progress | Capture a screenshot of the target device         |
 | 📷 Webshot            | 🔄 In Progress | Take a pic of the Front camera     |
-| 📥 Download Files     | 🔄 In Progress | Remotely download files from the victim's system  |
-| 📤 Upload Files       | 🔄 In Progress | Upload files to the victim's system               |
 | 🖼️ Change Wallpaper  | 🔄 In Progress | Change desktop wallpaper in victim's system                   |
 | 🌐 Browser History    | 🔄 In Progress | Retrieve browser history from supported browsers  |
-| 📲 Update Payload    | 🔄 In Progress | Update current payload to all upcomming versions  |
+| 📲 Update Payload    | 🔄 In Progress | Update current payload to new version without resending |
 | ⚡ Power Options    | 🔄 In Progress | Make client to Shutdown / Restart / Sleep / Logoff  |
 
 
